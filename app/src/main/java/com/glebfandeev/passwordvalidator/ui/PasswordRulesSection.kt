@@ -23,13 +23,17 @@ fun PasswordRulesSection(viewModel: MainViewModel) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text("Минимальная длина пароля (символов):", modifier = Modifier.weight(1f))
             OutlinedTextField(
-                value = viewModel.minLength.value.toString(),
+                value = if (viewModel.minLength.intValue == 0) "" else viewModel.minLength.intValue.toString(),
                 onValueChange = { newValue ->
-                    val intVal = newValue.toIntOrNull()
-                    if (intVal != null) {
-                        viewModel.minLength.value = intVal
-                        viewModel.updateRules()
+                    if (newValue.isEmpty()) {
+                        viewModel.minLength.intValue = 0
                     }
+                    newValue.toIntOrNull()?.let { intValue ->
+                        if (intValue > 0) {
+                            viewModel.minLength.intValue = intValue
+                        }
+                    }
+                    viewModel.updateRules()
                 },
                 modifier = Modifier.width(80.dp),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)

@@ -21,6 +21,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
@@ -31,7 +32,9 @@ fun WeakPasswordsList(
     onSaveToFile: () -> Unit
 ) {
     var newPassword by remember { mutableStateOf("") }
-    var passwordsList by remember { mutableStateOf(weakPasswords.toMutableList()) }
+    var passwordsList by remember(weakPasswords) {
+        mutableStateOf(weakPasswords.toMutableList())
+    }
 
     Column {
         passwordsList.forEach { password ->
@@ -51,14 +54,14 @@ fun WeakPasswordsList(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        Row {
+        Row(verticalAlignment = Alignment.CenterVertically) {
             OutlinedTextField(
                 value = newPassword,
                 onValueChange = { newPassword = it },
                 label = { Text("Новый слабый пароль") },
                 modifier = Modifier.weight(1f)
             )
-            Spacer(modifier = Modifier.width(8.dp))
+            Spacer(modifier = Modifier.width(12.dp))
             Button(onClick = {
                 if (newPassword.isNotEmpty()) {
                     passwordsList.add(newPassword)

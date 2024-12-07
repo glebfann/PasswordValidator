@@ -29,14 +29,38 @@ fun WeakPasswordsSection(viewModel: MainViewModel) {
         }
     )
 
+    val createFileLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.CreateDocument("text/plain"),
+        onResult = { uri ->
+            uri?.let {
+                context.contentResolver.takePersistableUriPermission(
+                    it,
+                    Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+                )
+                viewModel.selectFile(it, context)
+            }
+        }
+    )
+
     Column {
-        Button(onClick = { openFileLauncher.launch(arrayOf("text/plain")) }) {
-            Text("Выбрать файл слабых паролей")
+        Button(
+            onClick = { openFileLauncher.launch(arrayOf("text/plain")) }
+        ) {
+            Text("Открыть существующий файл")
         }
 
+        Button(
+            onClick = { createFileLauncher.launch("weak_passwords.txt") }
+        ) {
+            Text("Создать новый файл")
+        }
 
-        viewModel.selectedFileUri.value?.let { uri ->
-            Text("Выбранный файл: ${uri.path}")
+        viewModel.selectedFileUri.let { uri ->
+            if (uri.value != null) {
+                Text("Выбранный файл: ${uri.value?.path}")
+            } else {
+                Text("Выберите файл или добавьте слабые пароли вручную ниже.")
+            }
             Spacer(modifier = Modifier.height(8.dp))
             WeakPasswordsList(
                 weakPasswords = viewModel.weakPasswords.collectAsState().value,

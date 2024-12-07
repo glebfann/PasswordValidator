@@ -2,6 +2,7 @@ package com.glebfandeev.passwordvalidator.ui
 
 import android.content.Context
 import android.net.Uri
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import com.glebfandeev.passwordvalidator.validation.PasswordValidator
@@ -21,14 +22,14 @@ import java.util.logging.Level
 import java.util.logging.Logger
 
 class MainViewModel : ViewModel() {
-    var minLength = mutableStateOf(8)
+    var minLength = mutableIntStateOf(0)
     var requireUppercase = mutableStateOf(false)
     var requireLowercase = mutableStateOf(false)
     var requireDigit = mutableStateOf(false)
     var requireSpecialChar = mutableStateOf(false)
     var specialChars = mutableStateOf("!@#$%^&*")
     var excludeSymbols = mutableStateOf(false)
-    var forbiddenChars = mutableStateOf("<>{}[]")
+    var forbiddenChars = mutableStateOf("<>{}[] ")
     var useWeakPasswords = mutableStateOf(false)
 
     private val _password = MutableStateFlow("")
@@ -46,7 +47,7 @@ class MainViewModel : ViewModel() {
     private val _selectedFileUri = MutableStateFlow<Uri?>(null)
     val selectedFileUri = _selectedFileUri.asStateFlow()
 
-    private val validator = PasswordValidator(rules = listOf(MinLengthRule(minLength.value)))
+    private val validator = PasswordValidator(rules = emptyList())
     private val logger = Logger.getGlobal()
 
     fun onPasswordChange(newPassword: String) {
@@ -56,7 +57,7 @@ class MainViewModel : ViewModel() {
 
     fun updateRules() {
         val rules = listOfNotNull(
-            MinLengthRule(minLength.value),
+            MinLengthRule(minLength.intValue),
             RequireUppercaseRule().takeIf { requireUppercase.value },
             RequireLowercaseRule().takeIf { requireLowercase.value },
             RequireDigitRule().takeIf { requireDigit.value },
@@ -70,13 +71,18 @@ class MainViewModel : ViewModel() {
     }
 
     private fun validatePassword() {
-        val (isValid, errors) = validator.validate(_password.value)
-        _isPasswordValid.value = isValid
-        _errorMessages.value = errors
+        if (_password.value.isNotEmpty()) {
+            val (isValid, errors) = validator.validate(_password.value)
+            _isPasswordValid.value = isValid
+            _errorMessages.value = errors
+        } else {
+            _isPasswordValid.value = null
+        }
     }
 
     fun selectFile(uri: Uri, context: Context) {
         _selectedFileUri.value = uri
+        updateRules()
         loadWeakPasswordsFromFile(uri, context)
     }
 
